@@ -3,18 +3,38 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>fern</title>
+    <title>niche</title>
 
     <link rel="icon" type="image/png" href="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
-    <meta property="og:title" content="fern">
+
+    <meta property="og:title" content="niche">
     <meta property="og:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="fern">
+    <meta name="twitter:title" content="niche">
     <meta name="twitter:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
 
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --ease: cubic-bezier(.22, 1, .36, 1);
+            --ease-in: cubic-bezier(.55, 0, .68, .19);
+            --dur: .55s;
+            --dur-fast: .22s;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .001ms !important;
+            }
+        }
+
+        html, body {
+            height: 100%;
+        }
 
         body {
             background: #000;
@@ -23,8 +43,15 @@
             color: #fff;
             overflow-x: hidden;
             position: relative;
+            opacity: 0;
+            animation: pageFadeIn .7s var(--ease) .05s forwards;
+        }
+        @keyframes pageFadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
 
+        /* ---------- stars ---------- */
         .stars {
             position: fixed;
             top: 0; left: 0;
@@ -37,6 +64,7 @@
             background: #fff;
             border-radius: 50%;
             animation: twinkle 3s ease-in-out infinite;
+            will-change: opacity, transform;
         }
         .star-small  { width: 1px; height: 1px; box-shadow: 0 0 2px #fff; }
         .star-medium { width: 2px; height: 2px; box-shadow: 0 0 3px #fff; }
@@ -46,6 +74,7 @@
             50%      { opacity: 1;  transform: scale(1.2); }
         }
 
+        /* ---------- particles ---------- */
         .particle {
             position: fixed;
             background: #fff;
@@ -54,6 +83,7 @@
             opacity: 0;
             box-shadow: 0 0 2px #fff;
             z-index: 0;
+            will-change: transform, opacity;
         }
         .particle-small  { width: 1px; height: 1px; animation: floatSmall 12s ease-in-out infinite; }
         .particle-medium { width: 2px; height: 2px; animation: floatMedium 15s ease-in-out infinite; }
@@ -74,6 +104,7 @@
             100% { transform: translateY(-100vh) translateX(60px) rotate(360deg); opacity: 0; }
         }
 
+        /* ---------- helpers ---------- */
         .hidden { display: none !important; }
 
         .glow {
@@ -90,11 +121,38 @@
             50%      { text-shadow: 0 0 3px #fff, 0 0 6px #fff; }
         }
 
-        /* ---------- auth screen ---------- */
-        #authScreen {
+        /* ---------- screens (both take full viewport) ---------- */
+        .screen {
             position: relative;
             z-index: 2;
             min-height: 100vh;
+            transition:
+                opacity var(--dur) var(--ease),
+                transform var(--dur) var(--ease),
+                filter var(--dur) var(--ease);
+            will-change: opacity, transform;
+        }
+
+        /* entering / leaving states */
+        .screen.screen-enter {
+            opacity: 0;
+            transform: translateY(18px) scale(.985);
+            filter: blur(2px);
+        }
+        .screen.screen-active {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            filter: blur(0);
+        }
+        .screen.screen-leave {
+            opacity: 0;
+            transform: translateY(-18px) scale(.985);
+            filter: blur(2px);
+            pointer-events: none;
+        }
+
+        /* ---------- auth screen ---------- */
+        #authScreen {
             display: flex;
             justify-content: center;
             align-items: center;
@@ -104,6 +162,11 @@
             width: 100%;
             max-width: 380px;
             text-align: center;
+            animation: authRise .7s var(--ease) .12s both;
+        }
+        @keyframes authRise {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .auth-box .glow { margin-bottom: 8px; }
         .auth-box .tagline {
@@ -115,33 +178,55 @@
             margin-bottom: 34px;
         }
 
+        /* tabs with a sliding indicator */
         .tabs {
+            position: relative;
             display: flex;
-            gap: 8px;
             margin-bottom: 18px;
-        }
-        .tabs button {
-            flex: 1;
-            padding: 10px 0;
-            background: transparent;
             border: 1px solid rgba(255,255,255,.18);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .tabs::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            height: 100%;
+            width: 50%;
+            background: rgba(255,255,255,.08);
+            border-radius: 6px;
+            transition: transform .35s var(--ease), width .35s var(--ease);
+            z-index: 0;
+            pointer-events: none;
+        }
+        .tabs[data-mode="register"]::before { transform: translateX(100%); }
+        .tabs button {
+            position: relative;
+            z-index: 1;
+            flex: 1;
+            padding: 11px 0;
+            background: transparent;
+            border: none;
             color: rgba(255,255,255,.55);
             font-size: .75rem;
             letter-spacing: 2px;
             text-transform: lowercase;
             cursor: pointer;
-            border-radius: 6px;
-            transition: all .2s;
+            transition: color var(--dur-fast) var(--ease),
+                        text-shadow var(--dur-fast) var(--ease);
             font-family: inherit;
         }
         .tabs button.active {
             color: #fff;
-            border-color: #fff;
             text-shadow: 0 0 6px #fff;
-            box-shadow: 0 0 12px rgba(255,255,255,.15);
         }
         .tabs button:hover { color: #fff; }
 
+        /* fields with animated focus */
+        .field-wrap {
+            position: relative;
+            margin-bottom: 12px;
+        }
         .field {
             width: 100%;
             padding: 13px 14px;
@@ -152,18 +237,26 @@
             letter-spacing: .5px;
             border-radius: 6px;
             outline: none;
-            margin-bottom: 10px;
-            transition: all .2s;
+            transition:
+                border-color var(--dur-fast) var(--ease),
+                box-shadow var(--dur-fast) var(--ease),
+                background var(--dur-fast) var(--ease);
             font-family: inherit;
         }
-        .field::placeholder { color: rgba(255,255,255,.3); }
+        .field::placeholder {
+            color: rgba(255,255,255,.3);
+            transition: color var(--dur-fast) var(--ease);
+        }
         .field:focus {
-            border-color: rgba(255,255,255,.7);
-            box-shadow: 0 0 12px rgba(255,255,255,.15);
+            border-color: rgba(255,255,255,.75);
+            box-shadow: 0 0 0 3px rgba(255,255,255,.08), 0 0 18px rgba(255,255,255,.12);
             background: rgba(255,255,255,.05);
         }
+        .field:focus::placeholder { color: rgba(255,255,255,.55); }
 
+        /* primary button */
         .btn {
+            position: relative;
             width: 100%;
             padding: 13px;
             background: transparent;
@@ -175,25 +268,67 @@
             cursor: pointer;
             border-radius: 6px;
             margin-top: 8px;
-            transition: all .2s;
+            overflow: hidden;
+            transition:
+                box-shadow var(--dur-fast) var(--ease),
+                text-shadow var(--dur-fast) var(--ease),
+                transform .12s var(--ease),
+                opacity var(--dur-fast) var(--ease);
+            font-family: inherit;
             text-shadow: 0 0 5px #fff;
             box-shadow: 0 0 10px rgba(255,255,255,.1);
-            font-family: inherit;
         }
+        .btn::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at var(--mx, 50%) var(--my, 50%),
+                                       rgba(255,255,255,.22), transparent 55%);
+            opacity: 0;
+            transition: opacity .25s var(--ease);
+            pointer-events: none;
+        }
+        .btn:hover:not(:disabled)::after { opacity: 1; }
         .btn:hover:not(:disabled) {
-            box-shadow: 0 0 20px rgba(255,255,255,.3), 0 0 40px rgba(255,255,255,.1);
+            box-shadow: 0 0 22px rgba(255,255,255,.28), 0 0 44px rgba(255,255,255,.1);
             text-shadow: 0 0 10px #fff;
+            transform: translateY(-1px);
         }
-        .btn:active:not(:disabled) { transform: scale(.98); }
+        .btn:active:not(:disabled) { transform: translateY(0) scale(.985); }
         .btn:disabled { opacity: .35; cursor: not-allowed; }
 
+        /* loading spinner inside button */
+        .btn .spinner {
+            display: inline-block;
+            width: 11px; height: 11px;
+            margin-right: 9px;
+            border: 2px solid rgba(255,255,255,.35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            vertical-align: -1px;
+            animation: spin .7s linear infinite;
+            opacity: 0;
+            transform: scale(.5);
+            transition: opacity var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+        }
+        .btn.loading .spinner {
+            opacity: 1;
+            transform: scale(1);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* message fade */
         .msg {
             margin-top: 16px;
             font-size: .75rem;
             letter-spacing: 1px;
             min-height: 16px;
             text-transform: lowercase;
+            opacity: 0;
+            transform: translateY(3px);
+            transition: opacity .3s var(--ease), transform .3s var(--ease);
         }
+        .msg.show { opacity: 1; transform: translateY(0); }
         .msg.err { color: #ff6b6b; text-shadow: 0 0 6px rgba(255,107,107,.5); }
         .msg.ok  { color: #5cff9d; text-shadow: 0 0 6px rgba(92,255,157,.5); }
 
@@ -205,14 +340,15 @@
             letter-spacing: 2px;
             text-transform: lowercase;
             text-decoration: none;
-            transition: color .2s;
+            transition: color var(--dur-fast) var(--ease), text-shadow var(--dur-fast) var(--ease);
         }
-        .footer-link:hover { color: #fff; }
+        .footer-link:hover {
+            color: #fff;
+            text-shadow: 0 0 6px #fff;
+        }
 
         /* ---------- dashboard ---------- */
         #dashScreen {
-            position: relative;
-            z-index: 2;
             max-width: 1100px;
             margin: 0 auto;
             padding: 40px 24px 60px;
@@ -236,6 +372,7 @@
             letter-spacing: 1.5px;
             text-transform: lowercase;
             color: rgba(255,255,255,.5);
+            transition: color .3s var(--ease);
         }
         .who b { color: #fff; text-shadow: 0 0 5px #fff; font-weight: normal; }
         .logout {
@@ -248,26 +385,47 @@
             letter-spacing: 2px;
             text-transform: lowercase;
             cursor: pointer;
-            transition: all .2s;
+            transition:
+                color var(--dur-fast) var(--ease),
+                border-color var(--dur-fast) var(--ease),
+                box-shadow var(--dur-fast) var(--ease),
+                transform .12s var(--ease);
             font-family: inherit;
         }
         .logout:hover {
             color: #fff;
             border-color: #fff;
-            box-shadow: 0 0 12px rgba(255,255,255,.15);
+            box-shadow: 0 0 12px rgba(255,255,255,.2);
+            transform: translateY(-1px);
         }
+        .logout:active { transform: translateY(0) scale(.98); }
 
         .divider {
             height: 1px;
             background: linear-gradient(90deg, transparent, rgba(255,255,255,.2), transparent);
             margin: 26px 0;
+            animation: dividerGrow .8s var(--ease) .2s both;
         }
+        @keyframes dividerGrow {
+            from { transform: scaleX(0); opacity: 0; }
+            to   { transform: scaleX(1); opacity: 1; }
+        }
+
         .section-title {
             font-size: .7rem;
             letter-spacing: 3px;
             text-transform: lowercase;
             color: rgba(255,255,255,.45);
             margin-bottom: 16px;
+            opacity: 0;
+            animation: sectionIn .5s var(--ease) .25s forwards;
+        }
+        .section-title.later {
+            animation-delay: .5s;
+        }
+        @keyframes sectionIn {
+            from { opacity: 0; transform: translateX(-6px); }
+            to   { opacity: 1; transform: translateX(0); }
         }
 
         .grid { display: grid; gap: 12px; }
@@ -280,12 +438,32 @@
             border: 1px solid rgba(255,255,255,.1);
             border-radius: 10px;
             padding: 18px 20px;
-            transition: all .3s;
+            transition:
+                border-color .3s var(--ease),
+                box-shadow .3s var(--ease),
+                background .3s var(--ease),
+                transform .3s var(--ease);
+            opacity: 0;
+            transform: translateY(12px);
+            animation: statIn .55s var(--ease) forwards;
+        }
+        .stat:nth-child(1) { animation-delay: .30s; }
+        .stat:nth-child(2) { animation-delay: .38s; }
+        .stat:nth-child(3) { animation-delay: .46s; }
+        .stat:nth-child(4) { animation-delay: .54s; }
+        .stat:nth-child(5) { animation-delay: .62s; }
+        .stat:nth-child(6) { animation-delay: .70s; }
+        .stat:nth-child(7) { animation-delay: .78s; }
+        .stat:nth-child(8) { animation-delay: .86s; }
+        @keyframes statIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         .stat:hover {
             border-color: rgba(255,255,255,.3);
-            box-shadow: 0 0 20px rgba(255,255,255,.05);
+            box-shadow: 0 0 22px rgba(255,255,255,.06);
             background: rgba(255,255,255,.035);
+            transform: translateY(-2px);
         }
         .stat .label {
             font-size: .65rem;
@@ -293,14 +471,18 @@
             text-transform: lowercase;
             color: rgba(255,255,255,.4);
             margin-bottom: 8px;
+            transition: color .2s var(--ease);
         }
+        .stat:hover .label { color: rgba(255,255,255,.6); }
         .stat .value {
             font-size: 1.9rem;
             font-weight: normal;
             color: #fff;
             text-shadow: 0 0 8px rgba(255,255,255,.4);
             letter-spacing: 1px;
+            transition: text-shadow .3s var(--ease);
         }
+        .stat:hover .value { text-shadow: 0 0 14px rgba(255,255,255,.7); }
         .stat .value.small { font-size: 1rem; }
 
         .panel {
@@ -309,6 +491,12 @@
             border-radius: 10px;
             padding: 4px 22px;
             overflow: hidden;
+            opacity: 0;
+            animation: panelIn .6s var(--ease) .35s forwards;
+        }
+        @keyframes panelIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
         table { width: 100%; border-collapse: collapse; }
         th, td {
@@ -316,6 +504,7 @@
             padding: 12px 8px;
             border-bottom: 1px solid rgba(255,255,255,.07);
             font-size: .8rem;
+            transition: background .2s var(--ease);
         }
         tr:last-child td { border-bottom: none; }
         th {
@@ -325,7 +514,18 @@
             color: rgba(255,255,255,.4);
             font-weight: normal;
         }
+        tbody tr {
+            opacity: 0;
+            transform: translateY(4px);
+            animation: rowIn .45s var(--ease) forwards;
+        }
+        tbody tr:hover { background: rgba(255,255,255,.03); }
+        @keyframes rowIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
         td.muted { color: rgba(255,255,255,.4); font-size: .72rem; }
+
         .tag {
             display: inline-block;
             padding: 3px 10px;
@@ -335,10 +535,32 @@
             text-transform: lowercase;
             border: 1px solid rgba(255,255,255,.25);
             color: rgba(255,255,255,.8);
+            transition:
+                box-shadow .3s var(--ease),
+                border-color .3s var(--ease),
+                color .3s var(--ease);
         }
         .tag.nuke { color: #ff6b6b; border-color: rgba(255,107,107,.4); text-shadow: 0 0 5px rgba(255,107,107,.5); }
         .tag.pm   { color: #6bd6ff; border-color: rgba(107,214,255,.4); text-shadow: 0 0 5px rgba(107,214,255,.5); }
-        .empty { text-align: center; color: rgba(255,255,255,.3); padding: 40px 0; font-size: .8rem; letter-spacing: 1px; }
+        tr:hover .tag.nuke { box-shadow: 0 0 10px rgba(255,107,107,.35); }
+        tr:hover .tag.pm   { box-shadow: 0 0 10px rgba(107,214,255,.35); }
+
+        .empty {
+            text-align: center;
+            color: rgba(255,255,255,.3);
+            padding: 40px 0;
+            font-size: .8rem;
+            letter-spacing: 1px;
+        }
+
+        .loading-pulse {
+            display: inline-block;
+            animation: loadingPulse 1.2s ease-in-out infinite;
+        }
+        @keyframes loadingPulse {
+            0%, 100% { opacity: .3; }
+            50%      { opacity: 1; }
+        }
 
         @media (max-width: 600px) {
             .glow { font-size: 2rem; letter-spacing: 1px; }
@@ -351,32 +573,39 @@
 <body>
     <div class="stars" id="stars"></div>
 
-    <!-- LOGIN -->
-    <div id="authScreen">
+    <!-- AUTH SCREEN -->
+    <div id="authScreen" class="screen screen-active">
         <div class="auth-box">
-            <div class="glow">fern</div>
+            <div class="glow">niche</div>
             <div class="tagline">private dashboard</div>
 
-            <div class="tabs">
+            <div class="tabs" id="tabs" data-mode="login">
                 <button id="tabLogin"    class="active" onclick="setMode('login')">login</button>
                 <button id="tabRegister"               onclick="setMode('register')">register</button>
             </div>
 
             <form id="authForm" onsubmit="submitAuth(event)">
-                <input id="ident" class="field" placeholder="username or email" autocomplete="username" required>
-                <input id="password" class="field" placeholder="password" type="password" autocomplete="current-password" required>
-                <button class="btn" id="authBtn" type="submit">enter</button>
+                <div class="field-wrap">
+                    <input id="ident" class="field" placeholder="username or email" autocomplete="username" required>
+                </div>
+                <div class="field-wrap">
+                    <input id="password" class="field" placeholder="password" type="password" autocomplete="current-password" required>
+                </div>
+                <button class="btn" id="authBtn" type="submit">
+                    <span class="spinner"></span><span class="btn-label">enter</span>
+                </button>
             </form>
 
             <div id="authMsg" class="msg"></div>
-            
+
+            <a class="footer-link" href="https://cursed.lat" target="_blank">main site</a>
         </div>
     </div>
 
-    <!-- DASHBOARD -->
-    <div id="dashScreen" class="hidden">
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashScreen" class="screen screen-enter hidden">
         <div class="dash-head">
-            <div class="glow">fern</div>
+            <div class="glow">niche</div>
             <div class="dash-head-right">
                 <div class="who">signed in as <b id="whoName">—</b></div>
                 <button class="logout" onclick="logout()">logout</button>
@@ -401,14 +630,14 @@
 
         <div class="divider"></div>
 
-        <div class="section-title">recent history</div>
+        <div class="section-title later">recent history</div>
         <div class="panel">
             <table>
                 <thead>
                     <tr><th>when</th><th>action</th><th>server</th><th>details</th></tr>
                 </thead>
                 <tbody id="historyBody">
-                    <tr><td colspan="4" class="empty">loading…</td></tr>
+                    <tr><td colspan="4" class="empty"><span class="loading-pulse">loading…</span></td></tr>
                 </tbody>
             </table>
         </div>
@@ -434,17 +663,23 @@
                 p.className = 'particle ' + particleTypes[Math.floor(Math.random() * particleTypes.length)];
                 p.style.left = Math.random() * 100 + '%';
                 p.style.animationDelay = Math.random() * 15 + 's';
-                if (p.classList.contains('particle-small'))      p.style.animationDuration = (Math.random() * 4 + 10) + 's';
+                if (p.classList.contains('particle-small'))       p.style.animationDuration = (Math.random() * 4 + 10) + 's';
                 else if (p.classList.contains('particle-medium')) p.style.animationDuration = (Math.random() * 5 + 13) + 's';
                 else                                              p.style.animationDuration = (Math.random() * 6 + 16) + 's';
                 document.body.appendChild(p);
             }
         })();
 
-        /* ---------- supabase ---------- */
+        /* ---------- supabase config ---------- */
         const SUPABASE_URL      = "https://rkrpnzkduomwxpyvcmdk.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_Pd7eGgZlfqb3ZrTM0BFE2Q_9JHGa6Hr";
-        const SESSION_KEY = "fern_session_v1";
+        const SESSION_KEY = "niche_session_v1";
+
+        // RPC names — change to niche_* if you renamed the SQL functions
+        const RPC_REGISTER    = "fern_register";
+        const RPC_LOGIN       = "fern_login";
+        const RPC_GET_STATS   = "fern_get_stats";
+        const RPC_GET_HISTORY = "fern_get_history";
 
         async function rpc(fn, params) {
             try {
@@ -488,9 +723,41 @@
         }
         function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
-        /* ---------- helpers ---------- */
-        // Treat input as email if it contains '@'. Otherwise it's a username.
-        function isEmail(v) { return v.includes("@"); }
+        /* ---------- screen transitions ---------- */
+        function showScreen(which, skipAnim) {
+            const auth = document.getElementById("authScreen");
+            const dash = document.getElementById("dashScreen");
+
+            const enter = which === "dash" ? dash : auth;
+            const leave = which === "dash" ? auth : dash;
+
+            if (leave.classList.contains("hidden")) {
+                enter.classList.remove("hidden");
+                requestAnimationFrame(() => {
+                    enter.classList.remove("screen-enter", "screen-leave");
+                    enter.classList.add("screen-active");
+                });
+                return;
+            }
+
+            leave.classList.remove("screen-active");
+            leave.classList.add("screen-leave");
+
+            setTimeout(() => {
+                leave.classList.add("hidden");
+                leave.classList.remove("screen-leave");
+                enter.classList.remove("hidden");
+                enter.classList.remove("screen-active");
+                enter.classList.add("screen-enter");
+
+                // force reflow then animate in
+                void enter.offsetWidth;
+                requestAnimationFrame(() => {
+                    enter.classList.remove("screen-enter");
+                    enter.classList.add("screen-active");
+                });
+            }, skipAnim ? 0 : 380);
+        }
 
         /* ---------- auth ui ---------- */
         let authMode = "login";
@@ -498,26 +765,48 @@
         function setMode(mode) {
             authMode = mode;
             const isReg = mode === "register";
+
             document.getElementById("tabLogin").classList.toggle("active", !isReg);
             document.getElementById("tabRegister").classList.toggle("active", isReg);
-            document.getElementById("ident").placeholder = isReg
-                ? "username or email"
-                : "username or email";
-            document.getElementById("password").autocomplete = isReg ? "new-password" : "current-password";
-            document.getElementById("authBtn").textContent = isReg ? "create account" : "enter";
+            document.getElementById("tabs").dataset.mode = mode;
+
+            const pw = document.getElementById("password");
+            pw.autocomplete = isReg ? "new-password" : "current-password";
+
+            document.querySelector("#authBtn .btn-label").textContent = isReg ? "create account" : "enter";
             setMsg("");
         }
 
         function setMsg(text, isErr) {
             const m = document.getElementById("authMsg");
-            m.textContent = text || "";
-            m.className = "msg" + (text ? (isErr ? " err" : " ok") : "");
+            if (!text) {
+                m.classList.remove("show");
+                m.textContent = "";
+                return;
+            }
+            m.textContent = text;
+            m.className = "msg show" + (isErr ? " err" : " ok");
         }
+
+        function setBtnLoading(loading) {
+            const btn = document.getElementById("authBtn");
+            btn.classList.toggle("loading", loading);
+            btn.disabled = loading;
+        }
+
+        /* ripple that follows the mouse on the primary button */
+        (function attachRipple() {
+            const btn = document.getElementById("authBtn");
+            btn.addEventListener("mousemove", (e) => {
+                const r = btn.getBoundingClientRect();
+                btn.style.setProperty("--mx", ((e.clientX - r.left) / r.width * 100) + "%");
+                btn.style.setProperty("--my", ((e.clientY - r.top) / r.height * 100) + "%");
+            });
+        })();
 
         async function submitAuth(e) {
             e.preventDefault();
-            const btn = document.getElementById("authBtn");
-            btn.disabled = true;
+            setBtnLoading(true);
             setMsg("contacting server…", false);
 
             const ident    = document.getElementById("ident").value.trim();
@@ -525,88 +814,93 @@
 
             if (!ident || !password) {
                 setMsg("fill both fields", true);
-                btn.disabled = false; return false;
+                setBtnLoading(false);
+                return false;
             }
 
-            /* ============ REGISTER ============ */
             if (authMode === "register") {
                 let username, email;
-                if (isEmail(ident)) {
-                    // they typed an email → derive username from local part
-                    email    = ident.toLowerCase();
-                    username = email.split("@")[0];
-                    // sanitize username a bit so it fits DB rules
-                    username = username.replace(/[^a-z0-9._-]/g, "");
+                if (ident.includes("@")) {
+                    email = ident.toLowerCase();
+                    username = email.split("@")[0].replace(/[^a-z0-9._-]/g, "");
                     if (username.length < 3) {
                         setMsg("email prefix must be at least 3 chars", true);
-                        btn.disabled = false; return false;
+                        setBtnLoading(false);
+                        return false;
                     }
                 } else {
-                    // plain username → derive a placeholder email
                     username = ident.toLowerCase().replace(/[^a-z0-9._-]/g, "");
                     if (username.length < 3) {
                         setMsg("username must be at least 3 chars", true);
-                        btn.disabled = false; return false;
+                        setBtnLoading(false);
+                        return false;
                     }
-                    email = username + "@fern.local";
+                    email = username + "@niche.local";
                 }
 
-                const r = await rpc("fern_register", {
+                const r = await rpc(RPC_REGISTER, {
                     p_username: username,
                     p_email:    email,
                     p_password: password,
                 });
                 if (!r.ok) {
                     setMsg(r.error || "registration failed", true);
-                    btn.disabled = false; return false;
+                    setBtnLoading(false);
+                    return false;
                 }
 
-                // auto login after register (use username since that's what we stored)
-                const lr = await rpc("fern_login", { p_username: username, p_password: password });
+                const lr = await rpc(RPC_LOGIN, { p_username: username, p_password: password });
                 if (!lr.ok) {
-                    setMsg("account made — please log in manually", true);
-                    btn.disabled = false;
+                    setMsg("account made — please log in", true);
+                    setBtnLoading(false);
                     setMode("login");
                     return false;
                 }
                 saveSession({ user_id: lr.user_id, username: lr.username });
                 setMsg("success — loading…", false);
-                await showDashboard();
+                await transitionToDashboard();
                 return false;
             }
 
-            /* ============ LOGIN ============ */
-            // Use whichever they typed; fern_login matches username OR email
-            const lr = await rpc("fern_login", { p_username: ident, p_password: password });
+            const lr = await rpc(RPC_LOGIN, { p_username: ident, p_password: password });
             if (!lr.ok) {
                 setMsg(lr.error || "login failed", true);
-                btn.disabled = false; return false;
+                setBtnLoading(false);
+                return false;
             }
             saveSession({ user_id: lr.user_id, username: lr.username });
             setMsg("success — loading…", false);
-            await showDashboard();
+            await transitionToDashboard();
             return false;
         }
 
         function logout() {
             clearSession();
-            document.getElementById("dashScreen").classList.add("hidden");
-            document.getElementById("authScreen").classList.remove("hidden");
+            // reset dashboard animations so they play again next login
+            document.querySelectorAll("#dashScreen .stat, #dashScreen .section-title, #dashScreen .divider, #dashScreen .panel")
+                .forEach(el => {
+                    el.style.animation = "none";
+                    void el.offsetWidth;
+                    el.style.animation = "";
+                });
+            showScreen("auth");
             document.getElementById("authForm").reset();
             setMode("login");
             setMsg("");
+            setBtnLoading(false);
         }
 
         /* ---------- dashboard ---------- */
-        async function showDashboard() {
+        async function transitionToDashboard() {
+            // fill user + stats first (hidden screen), then animate in
             const s = getSession();
-            if (!s) { logout(); return; }
-
-            document.getElementById("authScreen").classList.add("hidden");
-            document.getElementById("dashScreen").classList.remove("hidden");
             document.getElementById("whoName").textContent = s.username;
+            await loadDashboardData(s);
+            showScreen("dash");
+        }
 
-            const stats = await rpc("fern_get_stats", { p_user_id: s.user_id });
+        async function loadDashboardData(s) {
+            const stats = await rpc(RPC_GET_STATS, { p_user_id: s.user_id });
             if (stats.ok) {
                 document.getElementById("stSrv").textContent  = stats.servers_nuked ?? 0;
                 document.getElementById("stDel").textContent  = stats.channels_del   ?? 0;
@@ -618,7 +912,7 @@
                     stats.updated_at ? String(stats.updated_at).slice(0, 19).replace("T", " ") : "—";
             }
 
-            const hist = await rpc("fern_get_history", { p_user_id: s.user_id, p_limit: 50 });
+            const hist = await rpc(RPC_GET_HISTORY, { p_user_id: s.user_id, p_limit: 50 });
             const body = document.getElementById("historyBody");
             body.innerHTML = "";
 
@@ -634,20 +928,21 @@
                 return;
             }
 
-            for (const h of rows) {
+            rows.forEach((h, i) => {
                 const ts = String(h.created_at || "").slice(0, 19).replace("T", " ");
                 const actionClass = ["nuke", "pm"].includes(h.action) ? h.action : "";
                 const details = h.details && Object.keys(h.details).length
                     ? escapeHtml(JSON.stringify(h.details)) : "—";
-                body.insertAdjacentHTML("beforeend", `
-                    <tr>
-                        <td class="muted">${escapeHtml(ts)}</td>
-                        <td><span class="tag ${actionClass}">${escapeHtml(h.action || "?")}</span></td>
-                        <td>${escapeHtml(h.guild_name || "-")}</td>
-                        <td class="muted">${details}</td>
-                    </tr>
-                `);
-            }
+                const tr = document.createElement("tr");
+                tr.style.animationDelay = (0.4 + i * 0.035) + "s";
+                tr.innerHTML = `
+                    <td class="muted">${escapeHtml(ts)}</td>
+                    <td><span class="tag ${actionClass}">${escapeHtml(h.action || "?")}</span></td>
+                    <td>${escapeHtml(h.guild_name || "-")}</td>
+                    <td class="muted">${details}</td>
+                `;
+                body.appendChild(tr);
+            });
         }
 
         function escapeHtml(s) {
@@ -657,9 +952,19 @@
         }
 
         /* ---------- bootstrap ---------- */
-        (function init() {
-            if (getSession()) showDashboard();
-            else setMode("login");
+        (async function init() {
+            const s = getSession();
+            if (s) {
+                document.getElementById("whoName").textContent = s.username;
+                // load data while still on auth screen, then jump (no flash)
+                await loadDashboardData(s);
+                document.getElementById("authScreen").classList.add("hidden");
+                document.getElementById("dashScreen").classList.remove("hidden");
+                document.getElementById("dashScreen").classList.remove("screen-enter");
+                document.getElementById("dashScreen").classList.add("screen-active");
+            } else {
+                setMode("login");
+            }
         })();
     </script>
 </body>
