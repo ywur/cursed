@@ -1,185 +1,431 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>cursed.lat</title>
-    
-    <!-- favicon / tab icon -->
-    <link rel="icon" type="image/png" href="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fern</title>
+<style>
+:root{
+  --bg:#0a0713;--panel:#120d1e;--panel2:#1a1228;--border:#2a1f45;
+  --text:#e8e0ff;--muted:#9b8fbf;--purple:#b06bff;--pink:#ff6bcb;
+  --green:#5cff9d;--red:#ff6b6b;--cyan:#6bd6ff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:radial-gradient(ellipse at top,#1a0f33 0%,#0a0713 60%);
+  color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif;
+  min-height:100vh;
+}
+.hidden{display:none !important}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+.brand{display:flex;align-items:center;gap:14px}
+.logo{
+  width:52px;height:52px;border-radius:14px;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  display:grid;place-items:center;font-weight:800;font-size:24px;
+  box-shadow:0 8px 30px rgba(176,107,255,.5);
+}
+.brand h1{font-size:22px;letter-spacing:3px}
+.brand small{color:var(--muted);font-size:11px;letter-spacing:2px}
 
-    <!-- open graph (discord, embeds) -->
-    <meta property="og:title" content="cursed.lat">
-    <meta property="og:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
-    <meta property="og:type" content="website">
+/* ---------- login screen ---------- */
+#authScreen{min-height:100vh;display:grid;place-items:center;padding:20px}
+.card{
+  width:100%;max-width:420px;
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--border);border-radius:20px;padding:32px;
+  box-shadow:0 20px 60px rgba(0,0,0,.5);
+}
+.card .brand{margin-bottom:26px}
+h2{font-size:12px;letter-spacing:2px;color:var(--muted);
+   text-transform:uppercase;margin-bottom:16px}
+.row{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.link{color:var(--cyan);cursor:pointer;font-size:12px;text-decoration:none;background:none;border:none}
+.link:hover{text-decoration:underline}
+input{
+  width:100%;padding:13px 14px;border-radius:11px;
+  border:1px solid var(--border);background:#0e0a18;color:var(--text);
+  font-size:14px;outline:none;transition:.15s;margin-bottom:10px;
+}
+input:focus{border-color:var(--purple);box-shadow:0 0 0 3px rgba(176,107,255,.15)}
+button.primary{
+  width:100%;padding:13px;border-radius:11px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  color:#fff;font-weight:700;letter-spacing:1.5px;font-size:13px;
+  margin-top:8px;transition:filter .15s,transform .1s;
+}
+button.primary:hover:not(:disabled){filter:brightness(1.15)}
+button.primary:active:not(:disabled){transform:scale(.98)}
+button.primary:disabled{opacity:.5;cursor:not-allowed}
+.msg{margin-top:14px;font-size:13px;min-height:18px}
+.msg.err{color:var(--red)}
+.msg.ok{color:var(--green)}
 
-    <!-- twitter / x preview -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="cursed.lat">
-    <meta name="twitter:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
-
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: #000;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-
-        .star {
-            position: absolute;
-            background: #fff;
-            border-radius: 50%;
-            animation: twinkle 3s ease-in-out infinite;
-        }
-
-        .star-small { width: 1px; height: 1px; box-shadow: 0 0 2px #fff; }
-        .star-medium { width: 2px; height: 2px; box-shadow: 0 0 3px #fff; }
-        .star-large { width: 3px; height: 3px; box-shadow: 0 0 4px #fff; }
-
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.2); }
-        }
-
-        .container {
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .glow {
-            font-size: 3rem;
-            font-weight: normal;
-            color: #fff;
-            text-shadow: 0 0 5px #fff, 0 0 10px #fff;
-            letter-spacing: 1px;
-            animation: pulse 2s infinite;
-            margin-bottom: 10px;
-            text-transform: lowercase;
-        }
-
-        .sub {
-            font-size: 1rem;
-            color: #fff;
-            letter-spacing: 1px;
-            margin-top: 10px;
-            text-transform: lowercase;
-        }
-
-        .sub a {
-            color: #fff;
-            text-decoration: none;
-            font-weight: normal;
-        }
-
-        .sub a:hover {
-            text-decoration: underline;
-        }
-
-        @keyframes pulse {
-            0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
-            50% { text-shadow: 0 0 3px #fff, 0 0 6px #fff; }
-        }
-
-        .particle {
-            position: fixed;
-            background: #fff;
-            border-radius: 50%;
-            pointer-events: none;
-            opacity: 0;
-            box-shadow: 0 0 2px #fff;
-        }
-
-        .particle-small { width: 1px; height: 1px; animation: floatSmall 12s ease-in-out infinite; }
-        .particle-medium { width: 2px; height: 2px; animation: floatMedium 15s ease-in-out infinite; }
-        .particle-large { width: 3px; height: 3px; animation: floatLarge 18s ease-in-out infinite; }
-
-        @keyframes floatSmall {
-            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
-            10%, 90% { opacity: 0.4; }
-            100% { transform: translateY(-100vh) translateX(40px) rotate(360deg); opacity: 0; }
-        }
-
-        @keyframes floatMedium {
-            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
-            10%, 90% { opacity: 0.3; }
-            100% { transform: translateY(-100vh) translateX(-40px) rotate(-360deg); opacity: 0; }
-        }
-
-        @keyframes floatLarge {
-            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
-            10%, 90% { opacity: 0.2; }
-            100% { transform: translateY(-100vh) translateX(60px) rotate(360deg); opacity: 0; }
-        }
-
-        @media (max-width: 600px) {
-            .glow { font-size: 2rem; letter-spacing: 1px; }
-            .sub { font-size: 0.9rem; letter-spacing: 1px; }
-        }
-    </style>
+/* ---------- dashboard ---------- */
+.who{
+  color:var(--muted);margin:14px 0 24px;font-size:14px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.who b{color:var(--purple)}
+.logout{
+  padding:8px 16px;border-radius:10px;border:1px solid var(--border);
+  background:transparent;color:var(--muted);cursor:pointer;font-size:12px;
+  text-decoration:none;transition:.15s;
+}
+.logout:hover{color:var(--text);border-color:var(--purple)}
+h3{
+  font-size:12px;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin:28px 0 14px;
+}
+.grid{display:grid;gap:14px}
+.g4{grid-template-columns:repeat(4,1fr)}
+@media(max-width:820px){.g4{grid-template-columns:repeat(2,1fr)}}
+.stat{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--border);border-radius:16px;padding:20px;
+  position:relative;overflow:hidden;
+}
+.stat::before{
+  content:'';position:absolute;inset:0;
+  background:linear-gradient(135deg,rgba(176,107,255,.1),transparent 60%);
+  pointer-events:none;
+}
+.stat .label{
+  color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:1.5px;position:relative;
+}
+.stat .value{
+  font-size:32px;font-weight:800;margin-top:8px;
+  background:linear-gradient(90deg,var(--purple),var(--pink));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  position:relative;
+}
+.panel{
+  background:linear-gradient(180deg,var(--panel),var(--panel2));
+  border:1px solid var(--border);border-radius:16px;padding:8px 22px;
+  overflow:hidden;
+}
+table{width:100%;border-collapse:collapse}
+th,td{
+  text-align:left;padding:12px 10px;
+  border-bottom:1px solid var(--border);font-size:14px;
+}
+th{
+  color:var(--muted);font-size:11px;text-transform:uppercase;
+  letter-spacing:1.5px;
+}
+tr:last-child td{border-bottom:none}
+.tag{
+  display:inline-block;padding:3px 10px;border-radius:99px;
+  font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+  background:rgba(176,107,255,.15);color:var(--purple);
+  border:1px solid rgba(176,107,255,.35);
+}
+.tag.nuke{background:rgba(255,107,107,.15);color:var(--red);border-color:rgba(255,107,107,.35)}
+.tag.pm  {background:rgba(107,214,255,.15);color:var(--cyan);border-color:rgba(107,214,255,.35)}
+.empty{text-align:center;color:var(--muted);padding:40px}
+.muted{color:var(--muted);font-size:12px}
+</style>
 </head>
 <body>
-    <div class="stars" id="stars"></div>
-    
-    <div class="container">
-        <div class="glow">mev/cursed</div>
-        <div class="sub">main site: <a href="https://cursed.lat/c" target="_blank">mev/cursed</a></div>
+
+<!-- ============================================================ -->
+<!-- LOGIN SCREEN -->
+<!-- ============================================================ -->
+<div id="authScreen">
+  <div class="card">
+    <div class="brand">
+      <div class="logo">F</div>
+      <div>
+        <h1>FERN</h1>
+        <small>DASHBOARD</small>
+      </div>
     </div>
 
-    <script>
-        const starsContainer = document.getElementById('stars');
-        const starSizes = ['star-small', 'star-medium', 'star-large'];
-        
-        for (let i = 0; i < 150; i++) {
-            const star = document.createElement('div');
-            star.className = 'star ' + starSizes[Math.floor(Math.random() * starSizes.length)];
-            star.style.left = Math.random() * 100 + '%';
-            star.style.top = Math.random() * 100 + '%';
-            star.style.animationDelay = Math.random() * 3 + 's';
-            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
-            starsContainer.appendChild(star);
-        }
+    <div class="row">
+      <h2 id="authTitle">Login</h2>
+      <button class="link" id="authToggle" onclick="toggleMode()">create account</button>
+    </div>
 
-        const particleTypes = ['particle-small', 'particle-medium', 'particle-large'];
-        
-        for (let i = 0; i < 25; i++) {
-            const particle = document.createElement('div');
-            particle.className = 'particle ' + particleTypes[Math.floor(Math.random() * particleTypes.length)];
-            particle.style.left = Math.random() * 100 + '%';
-            particle.style.animationDelay = Math.random() * 15 + 's';
-            
-            if (particle.classList.contains('particle-small')) {
-                particle.style.animationDuration = (Math.random() * 4 + 10) + 's';
-            } else if (particle.classList.contains('particle-medium')) {
-                particle.style.animationDuration = (Math.random() * 5 + 13) + 's';
-            } else {
-                particle.style.animationDuration = (Math.random() * 6 + 16) + 's';
-            }
-            
-            document.body.appendChild(particle);
-        }
-    </script>
+    <form id="authForm" onsubmit="submitAuth(event)">
+      <input id="username" placeholder="Username or email" autocomplete="username" required>
+      <input id="email" placeholder="Email" type="email" autocomplete="email" class="hidden">
+      <input id="password" type="password" placeholder="Password" autocomplete="current-password" required>
+      <button class="primary" id="authBtn" type="submit">LOGIN</button>
+    </form>
+
+    <div id="authMsg" class="msg"></div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- DASHBOARD -->
+<!-- ============================================================ -->
+<div id="dashScreen" class="wrap hidden">
+  <div class="brand">
+    <div class="logo">F</div>
+    <div>
+      <h1>FERN</h1>
+      <small>DASHBOARD</small>
+    </div>
+  </div>
+
+  <div class="who">
+    <div>signed in as <b id="whoName">—</b></div>
+    <button class="logout" onclick="logout()">logout</button>
+  </div>
+
+  <h3>Stats</h3>
+  <div class="grid g4">
+    <div class="stat"><div class="label">Servers Nuked</div>    <div class="value" id="stSrv">0</div></div>
+    <div class="stat"><div class="label">Channels Deleted</div> <div class="value" id="stDel">0</div></div>
+    <div class="stat"><div class="label">Channels Made</div>    <div class="value" id="stMade">0</div></div>
+    <div class="stat"><div class="label">Messages Sent</div>    <div class="value" id="stMsgs">0</div></div>
+  </div>
+  <div class="grid g4" style="margin-top:14px">
+    <div class="stat"><div class="label">Webhooks Made</div> <div class="value" id="stWh">0</div></div>
+    <div class="stat"><div class="label">Members DM'd</div>  <div class="value" id="stDm">0</div></div>
+    <div class="stat"><div class="label">Last Update</div>   <div class="value" id="stUp" style="font-size:16px">—</div></div>
+    <div class="stat"><div class="label">History Rows</div>  <div class="value" id="stHist">0</div></div>
+  </div>
+
+  <h3>Recent History</h3>
+  <div class="panel">
+    <table>
+      <thead>
+        <tr><th>When</th><th>Action</th><th>Server</th><th>Details</th></tr>
+      </thead>
+      <tbody id="historyBody">
+        <tr><td colspan="4" class="empty">loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- SCRIPT -->
+<!-- ============================================================ -->
+<script>
+// ============================================================
+//  CONFIG — your Supabase project (safe to publish, this is
+//  the *publishable* anon key, not the service role key)
+// ============================================================
+const SUPABASE_URL      = "https://rkrpnzkduomwxpyvcmdk.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_Pd7eGgZlfqb3ZrTM0BFE2Q_9JHGa6Hr";
+
+const SESSION_KEY = "fern_session_v1";
+
+// ============================================================
+//  Supabase RPC helper (never throws — always returns object)
+// ============================================================
+async function rpc(fn, params) {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+      method: "POST",
+      headers: {
+        "apikey": SUPABASE_ANON_KEY,
+        "Authorization": "Bearer " + SUPABASE_ANON_KEY,
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+      },
+      body: JSON.stringify(params || {}),
+    });
+    const text = await res.text();
+    let data;
+    try { data = JSON.parse(text); }
+    catch { return { ok: false, error: "bad json: " + text.slice(0, 200) }; }
+
+    if (res.status >= 400) {
+      const m = (data && (data.message || data.error)) || ("http " + res.status);
+      return { ok: false, error: m };
+    }
+    if (Array.isArray(data)) data = data[0] || {};
+    if (typeof data !== "object" || data === null) {
+      return { ok: false, error: "unexpected response" };
+    }
+    return data;
+  } catch (e) {
+    return { ok: false, error: "network: " + e.message };
+  }
+}
+
+// ============================================================
+//  Session (localStorage)
+// ============================================================
+function saveSession(s) {
+  localStorage.setItem(SESSION_KEY, JSON.stringify({ ...s, at: Date.now() }));
+}
+function getSession() {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    const s = JSON.parse(raw);
+    if (Date.now() - s.at > 7 * 86400 * 1000) {
+      localStorage.removeItem(SESSION_KEY);
+      return null;
+    }
+    return s;
+  } catch { return null; }
+}
+function clearSession() { localStorage.removeItem(SESSION_KEY); }
+
+// ============================================================
+//  Auth screen state
+// ============================================================
+let authMode = "login";
+
+function toggleMode() {
+  authMode = authMode === "login" ? "register" : "login";
+  document.getElementById("authTitle").textContent  = authMode === "login" ? "Login" : "Create Account";
+  document.getElementById("authBtn").textContent    = authMode === "login" ? "LOGIN" : "CREATE ACCOUNT";
+  document.getElementById("authToggle").textContent = authMode === "login" ? "create account" : "back to login";
+  document.getElementById("email").classList.toggle("hidden", authMode === "login");
+  document.getElementById("password").autocomplete = authMode === "login" ? "current-password" : "new-password";
+  setAuthMsg("");
+}
+
+function setAuthMsg(text, isErr) {
+  const m = document.getElementById("authMsg");
+  m.textContent = text || "";
+  m.className = "msg" + (text ? (isErr ? " err" : " ok") : "");
+}
+
+async function submitAuth(e) {
+  e.preventDefault();
+  const btn = document.getElementById("authBtn");
+  btn.disabled = true;
+  setAuthMsg("contacting server…", false);
+
+  const username = document.getElementById("username").value.trim();
+  const email    = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!username || !password) {
+    setAuthMsg("username and password required", true);
+    btn.disabled = false;
+    return false;
+  }
+
+  if (authMode === "register") {
+    if (!email) {
+      setAuthMsg("email required to register", true);
+      btn.disabled = false;
+      return false;
+    }
+    const r = await rpc("fern_register", {
+      p_username: username, p_email: email, p_password: password,
+    });
+    if (!r.ok) {
+      setAuthMsg(r.error || "registration failed", true);
+      btn.disabled = false;
+      return false;
+    }
+  }
+
+  // login (also after successful register)
+  const lr = await rpc("fern_login", { p_username: username, p_password: password });
+  if (!lr.ok) {
+    setAuthMsg(lr.error || "login failed", true);
+    btn.disabled = false;
+    return false;
+  }
+
+  saveSession({ user_id: lr.user_id, username: lr.username });
+  setAuthMsg("success — loading…", false);
+  await showDashboard();
+  return false;
+}
+
+function logout() {
+  clearSession();
+  document.getElementById("dashScreen").classList.add("hidden");
+  document.getElementById("authScreen").classList.remove("hidden");
+  document.getElementById("authForm").reset();
+  toggleModeBackToLogin();
+  setAuthMsg("");
+}
+
+function toggleModeBackToLogin() {
+  authMode = "login";
+  document.getElementById("authTitle").textContent  = "Login";
+  document.getElementById("authBtn").textContent    = "LOGIN";
+  document.getElementById("authToggle").textContent = "create account";
+  document.getElementById("email").classList.add("hidden");
+  document.getElementById("password").autocomplete = "current-password";
+}
+
+// ============================================================
+//  Dashboard
+// ============================================================
+async function showDashboard() {
+  const s = getSession();
+  if (!s) { logout(); return; }
+
+  document.getElementById("authScreen").classList.add("hidden");
+  document.getElementById("dashScreen").classList.remove("hidden");
+  document.getElementById("whoName").textContent = s.username;
+
+  // load stats
+  const stats = await rpc("fern_get_stats", { p_user_id: s.user_id });
+  if (stats.ok) {
+    document.getElementById("stSrv").textContent  = stats.servers_nuked ?? 0;
+    document.getElementById("stDel").textContent  = stats.channels_del   ?? 0;
+    document.getElementById("stMade").textContent = stats.channels_made  ?? 0;
+    document.getElementById("stMsgs").textContent = stats.messages_sent  ?? 0;
+    document.getElementById("stWh").textContent   = stats.webhooks_made  ?? 0;
+    document.getElementById("stDm").textContent   = stats.members_dmed   ?? 0;
+    document.getElementById("stUp").textContent   =
+      stats.updated_at ? String(stats.updated_at).slice(0, 19).replace("T", " ") : "—";
+  }
+
+  // load history
+  const hist = await rpc("fern_get_history", { p_user_id: s.user_id, p_limit: 50 });
+  const body = document.getElementById("historyBody");
+  body.innerHTML = "";
+
+  if (!hist.ok) {
+    body.innerHTML = `<tr><td colspan="4" class="empty">error: ${escapeHtml(hist.error || "unknown")}</td></tr>`;
+    return;
+  }
+
+  const rows = Array.isArray(hist.rows) ? hist.rows : [];
+  document.getElementById("stHist").textContent = rows.length;
+
+  if (rows.length === 0) {
+    body.innerHTML = `<tr><td colspan="4" class="empty">no history yet — run commands in the CLI</td></tr>`;
+    return;
+  }
+
+  for (const h of rows) {
+    const ts = String(h.created_at || "").slice(0, 19).replace("T", " ");
+    const actionClass = ["nuke", "pm"].includes(h.action) ? h.action : "";
+    const details = h.details && Object.keys(h.details).length
+      ? escapeHtml(JSON.stringify(h.details))
+      : "—";
+    body.insertAdjacentHTML("beforeend", `
+      <tr>
+        <td class="muted">${escapeHtml(ts)}</td>
+        <td><span class="tag ${actionClass}">${escapeHtml(h.action || "?")}</span></td>
+        <td>${escapeHtml(h.guild_name || "-")}</td>
+        <td class="muted">${details}</td>
+      </tr>
+    `);
+  }
+}
+
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+
+// ============================================================
+//  Bootstrap
+// ============================================================
+(function init() {
+  const s = getSession();
+  if (s) showDashboard();
+})();
+</script>
 </body>
 </html>
