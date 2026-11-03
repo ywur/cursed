@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>cursed.lat</title>
+    
+    <!-- favicon / tab icon -->
+    <link rel="icon" type="image/png" href="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
+
+    <!-- open graph (discord, embeds) -->
+    <meta property="og:title" content="cursed.lat">
+    <meta property="og:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
+    <meta property="og:type" content="website">
+
+    <!-- twitter / x preview -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="cursed.lat">
+    <meta name="twitter:image" content="https://i.pinimg.com/736x/f2/6b/da/f26bda09b95406861725319afa92d2d4.jpg">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .star {
+            position: absolute;
+            background: #fff;
+            border-radius: 50%;
+            animation: twinkle 3s ease-in-out infinite;
+        }
+
+        .star-small { width: 1px; height: 1px; box-shadow: 0 0 2px #fff; }
+        .star-medium { width: 2px; height: 2px; box-shadow: 0 0 3px #fff; }
+        .star-large { width: 3px; height: 3px; box-shadow: 0 0 4px #fff; }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .glow {
+            font-size: 3rem;
+            font-weight: normal;
+            color: #fff;
+            text-shadow: 0 0 5px #fff, 0 0 10px #fff;
+            letter-spacing: 1px;
+            animation: pulse 2s infinite;
+            margin-bottom: 10px;
+            text-transform: lowercase;
+        }
+
+        .sub {
+            font-size: 1rem;
+            color: #fff;
+            letter-spacing: 1px;
+            margin-top: 10px;
+            text-transform: lowercase;
+        }
+
+        .sub a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: normal;
+        }
+
+        .sub a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff; }
+            50% { text-shadow: 0 0 3px #fff, 0 0 6px #fff; }
+        }
+
+        .particle {
+            position: fixed;
+            background: #fff;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0;
+            box-shadow: 0 0 2px #fff;
+        }
+
+        .particle-small { width: 1px; height: 1px; animation: floatSmall 12s ease-in-out infinite; }
+        .particle-medium { width: 2px; height: 2px; animation: floatMedium 15s ease-in-out infinite; }
+        .particle-large { width: 3px; height: 3px; animation: floatLarge 18s ease-in-out infinite; }
+
+        @keyframes floatSmall {
+            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+            10%, 90% { opacity: 0.4; }
+            100% { transform: translateY(-100vh) translateX(40px) rotate(360deg); opacity: 0; }
+        }
+
+        @keyframes floatMedium {
+            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+            10%, 90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) translateX(-40px) rotate(-360deg); opacity: 0; }
+        }
+
+        @keyframes floatLarge {
+            0% { transform: translateY(100vh) translateX(0) rotate(0deg); opacity: 0; }
+            10%, 90% { opacity: 0.2; }
+            100% { transform: translateY(-100vh) translateX(60px) rotate(360deg); opacity: 0; }
+        }
+
+        @media (max-width: 600px) {
+            .glow { font-size: 2rem; letter-spacing: 1px; }
+            .sub { font-size: 0.9rem; letter-spacing: 1px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+    
+    <div class="container">
+        <div class="glow">mev/cursed</div>
+        <div class="sub">main site: <a href="https://cursed.lat/c" target="_blank">mev/cursed</a></div>
+    </div>
+
+    <script>
+        const starsContainer = document.getElementById('stars');
+        const starSizes = ['star-small', 'star-medium', 'star-large'];
+        
+        for (let i = 0; i < 150; i++) {
+            const star = document.createElement('div');
+            star.className = 'star ' + starSizes[Math.floor(Math.random() * starSizes.length)];
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            star.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            starsContainer.appendChild(star);
+        }
+
+        const particleTypes = ['particle-small', 'particle-medium', 'particle-large'];
+        
+        for (let i = 0; i < 25; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle ' + particleTypes[Math.floor(Math.random() * particleTypes.length)];
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDelay = Math.random() * 15 + 's';
+            
+            if (particle.classList.contains('particle-small')) {
+                particle.style.animationDuration = (Math.random() * 4 + 10) + 's';
+            } else if (particle.classList.contains('particle-medium')) {
+                particle.style.animationDuration = (Math.random() * 5 + 13) + 's';
+            } else {
+                particle.style.animationDuration = (Math.random() * 6 + 16) + 's';
+            }
+            
+            document.body.appendChild(particle);
+        }
+    </script>
+</body>
+</html>
