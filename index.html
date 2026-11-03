@@ -32,9 +32,7 @@
             }
         }
 
-        html, body {
-            height: 100%;
-        }
+        html, body { height: 100%; }
 
         body {
             background: #000;
@@ -121,7 +119,7 @@
             50%      { text-shadow: 0 0 3px #fff, 0 0 6px #fff; }
         }
 
-        /* ---------- screens (both take full viewport) ---------- */
+        /* ---------- screens ---------- */
         .screen {
             position: relative;
             z-index: 2;
@@ -132,8 +130,6 @@
                 filter var(--dur) var(--ease);
             will-change: opacity, transform;
         }
-
-        /* entering / leaving states */
         .screen.screen-enter {
             opacity: 0;
             transform: translateY(18px) scale(.985);
@@ -178,7 +174,6 @@
             margin-bottom: 34px;
         }
 
-        /* tabs with a sliding indicator */
         .tabs {
             position: relative;
             display: flex;
@@ -222,7 +217,6 @@
         }
         .tabs button:hover { color: #fff; }
 
-        /* fields with animated focus */
         .field-wrap {
             position: relative;
             margin-bottom: 12px;
@@ -254,7 +248,6 @@
         }
         .field:focus::placeholder { color: rgba(255,255,255,.55); }
 
-        /* primary button */
         .btn {
             position: relative;
             width: 100%;
@@ -297,7 +290,6 @@
         .btn:active:not(:disabled) { transform: translateY(0) scale(.985); }
         .btn:disabled { opacity: .35; cursor: not-allowed; }
 
-        /* loading spinner inside button */
         .btn .spinner {
             display: inline-block;
             width: 11px; height: 11px;
@@ -317,7 +309,6 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* message fade */
         .msg {
             margin-top: 16px;
             font-size: .75rem;
@@ -420,9 +411,7 @@
             opacity: 0;
             animation: sectionIn .5s var(--ease) .25s forwards;
         }
-        .section-title.later {
-            animation-delay: .5s;
-        }
+        .section-title.later { animation-delay: .5s; }
         @keyframes sectionIn {
             from { opacity: 0; transform: translateX(-6px); }
             to   { opacity: 1; transform: translateX(0); }
@@ -668,16 +657,16 @@
             }
         })();
 
-        /* ---------- supabase config ---------- */
+        /* ---------- supabase config (niche) ---------- */
         const SUPABASE_URL      = "https://rkrpnzkduomwxpyvcmdk.supabase.co";
         const SUPABASE_ANON_KEY = "sb_publishable_Pd7eGgZlfqb3ZrTM0BFE2Q_9JHGa6Hr";
         const SESSION_KEY = "niche_session_v1";
 
-        // RPC names — change to niche_* if you renamed the SQL functions
-        const RPC_REGISTER    = "fern_register";
-        const RPC_LOGIN       = "fern_login";
-        const RPC_GET_STATS   = "fern_get_stats";
-        const RPC_GET_HISTORY = "fern_get_history";
+        // RPC names — matches the niche_* functions in Supabase.
+        const RPC_REGISTER    = "niche_register";
+        const RPC_LOGIN       = "niche_login";
+        const RPC_GET_STATS   = "niche_get_stats";
+        const RPC_GET_HISTORY = "niche_get_history";
 
         async function rpc(fn, params) {
             try {
@@ -722,7 +711,7 @@
         function clearSession() { localStorage.removeItem(SESSION_KEY); }
 
         /* ---------- screen transitions ---------- */
-        function showScreen(which, skipAnim) {
+        function showScreen(which) {
             const auth = document.getElementById("authScreen");
             const dash = document.getElementById("dashScreen");
 
@@ -748,13 +737,12 @@
                 enter.classList.remove("screen-active");
                 enter.classList.add("screen-enter");
 
-                // force reflow then animate in
                 void enter.offsetWidth;
                 requestAnimationFrame(() => {
                     enter.classList.remove("screen-enter");
                     enter.classList.add("screen-active");
                 });
-            }, skipAnim ? 0 : 380);
+            }, 380);
         }
 
         /* ---------- auth ui ---------- */
@@ -792,7 +780,6 @@
             btn.disabled = loading;
         }
 
-        /* ripple that follows the mouse on the primary button */
         (function attachRipple() {
             const btn = document.getElementById("authBtn");
             btn.addEventListener("mousemove", (e) => {
@@ -874,7 +861,6 @@
 
         function logout() {
             clearSession();
-            // reset dashboard animations so they play again next login
             document.querySelectorAll("#dashScreen .stat, #dashScreen .section-title, #dashScreen .divider, #dashScreen .panel")
                 .forEach(el => {
                     el.style.animation = "none";
@@ -890,7 +876,6 @@
 
         /* ---------- dashboard ---------- */
         async function transitionToDashboard() {
-            // fill user + stats first (hidden screen), then animate in
             const s = getSession();
             document.getElementById("whoName").textContent = s.username;
             await loadDashboardData(s);
@@ -954,7 +939,6 @@
             const s = getSession();
             if (s) {
                 document.getElementById("whoName").textContent = s.username;
-                // load data while still on auth screen, then jump (no flash)
                 await loadDashboardData(s);
                 document.getElementById("authScreen").classList.add("hidden");
                 document.getElementById("dashScreen").classList.remove("hidden");
