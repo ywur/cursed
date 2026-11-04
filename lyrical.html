@@ -16,14 +16,6 @@
             --spotify: #1DB954;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: .001ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: .001ms !important;
-            }
-        }
-
         html, body { height: 100%; }
 
         body {
@@ -329,15 +321,15 @@
                 const text = await res.text();
                 let data;
                 try { data = JSON.parse(text); }
-                catch { return { ok: false, error: "bad json: " + text.slice(0, 200) }; }
+                catch { return { ok: false, error: "server error" }; }
+                
                 if (res.status >= 400) {
                     const m = (data && (data.message || data.error)) || ("http " + res.status);
                     return { ok: false, error: m };
                 }
-                if (Array.isArray(data)) data = data[0] || {};
                 return data;
             } catch (e) {
-                return { ok: false, error: "network: " + e.message };
+                return { ok: false, error: "network error" };
             }
         }
 
@@ -435,6 +427,7 @@
                     username = ident.toLowerCase().replace(/[^a-z0-9._-]/g, "");
                     email = username + "@lyrical.local";
                 }
+                
                 const r = await rpc(RPC_REGISTER, { p_username: username, p_email: email, p_password: password });
                 if (!r.ok) { setMsg(r.error || "registration failed", true); setBtnLoading(false); return false; }
                 
@@ -470,7 +463,7 @@
         }
 
         /* ---------- SPOTIFY LYRICS ENGINE ---------- */
-        const SPOTIFY_CLIENT_ID = "YOUR_SPOTIFY_CLIENT_ID_HERE"; 
+        const SPOTIFY_CLIENT_ID = "9eeaa7a2d89b462295e651494f8cfa1a"; 
         const SPOTIFY_REDIRECT_URI = "http://127.0.0.1:8888/callback";
         const SPOTIFY_SCOPES = "user-read-playback-state user-read-currently-playing";
 
@@ -488,12 +481,7 @@
         const statusEl = document.getElementById("stStatus");
         const spotifyBtn = document.getElementById("spotifyBtn");
 
-        // --- Spotify Login ---
         function loginSpotify() {
-            if(SPOTIFY_CLIENT_ID === "9eeaa7a2d89b462295e651494f8cfa1a") {
-                alert("Please put your Spotify Client ID inside the HTML file code first!");
-                return;
-            }
             const authUrl = `https://accounts.spotify.com/authorize?client_id=${SPOTIFY_CLIENT_ID}&response_type=token&redirect_uri=${encodeURIComponent(SPOTIFY_REDIRECT_URI)}&scope=${encodeURIComponent(SPOTIFY_SCOPES)}`;
             window.location.href = authUrl;
         }
@@ -509,6 +497,145 @@
             }
         }
 
-        // --- Lyrics Fetching ---
         async function fetchLyrics(title, artist) {
-            const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(title)}&
+            const url = `https://lrclib.net/api/get?track_name=${encodeURIComponent(title)}&artist_name=${encodeURIComponent(artist)}`;
+            try {
+                const res = await fetch(url, { headers: { "User-Agent": "LyricalApp/1.0" }});
+                if (res.ok) {
+                    const data = await res.json();
+                    return data.syncedLyrics;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        function parseLRC(lrcText) {
+            const lines = [];
+            if (!lrcText) return lines;
+            lrcText.split('\n').forEach(line => {
+                if (line.startsWith('[') && line.includes(']')) {
+                    const parts = line.split(']');
+                    const timeStr = parts[0].substring(1);
+                    const text = parts.slice(1).join(']').trim();
+                    if (text && timeStr.includes(':')) {
+                        const [min, sec] = timeStr.split(':');
+                        const totalSec = parseInt(min) * 60 + parseFloat(sec);
+                        lines.push({ time: totalSec, text: text });
+                    }
+                }
+            });
+            return lines;
+        }
+
+        async function startPolling() {
+            statusEl.innerText = "connected";
+            statusEl.style.color = "var(--spotify)";
+            
+            while (true) {
+                try {
+                    const res = await fetch("https://api.spotify.com/v1/me/player", {
+                        headers: { "Authorization": `Bearer ${accessToken}` }
+                    });
+
+                    if (res.status === 401) { 
+                        statusEl.innerText = "token expired"; 
+                        statusEl.style.color = "#ff6b6b";
+                        spotifyBtn.style.display = 'block'; 
+                        return; 
+                    }
+
+                    if (res.status === 204 || res.status === 202) {
+                        currentLyricEl.innerText = "Play a song on Spotify!";
+                        nextLyricEl.innerText = "";
+                        statusEl.innerText = "no track";
+                        await new Promise(r => setTimeout(r, 2000));
+                        continue;
+                    }
+
+                    const data = await res.json();
+                    if (data && data.item) {
+                        const trackId = data.item.id;
+                        const title = data.item.name;
+                        const artist = data.item.artists[0].name;
+                        
+                        document.getElementById("stTrack").innerText = title;
+                        document.getElementById("stArtist").innerText = artist;
+                        document.getElementById("stAlbum").innerText = data.item.album.name;
+                        
+                        trackDurationMs = data.item.duration_ms;
+                        isPlaying = data.is_playing;
+                        
+                        statusEl.innerText = isPlaying ? "playing" : "paused";
+                        statusEl.style.color = isPlaying ? "var(--spotify)" : "#aaa";
+
+                        if (trackId !== currentTrackId) {
+                            currentTrackId = trackId;
+                            currentLyricEl.innerText = "Fetching lyrics...";
+                            nextLyricEl.innerText = "";
+                            const lrc = await fetchLyrics(title, artist);
+                            parsedLyrics = parseLRC(lrc);
+                        }
+
+                        if (isPlaying) {
+                            stopwatchStartTime = data.progress_ms / 1000;
+                            localStartTick = performance.now() / 1000;
+                        }
+                    }
+                } catch (e) {}
+                await new Promise(r => setTimeout(r, 2000));
+            }
+        }
+
+        function updateDisplay() {
+            if (!isPlaying || !parsedLyrics.length) {
+                if (isPlaying && !parsedLyrics.length && currentTrackId) currentLyricEl.innerText = "(No synced lyrics found)";
+                requestAnimationFrame(updateDisplay);
+                return;
+            }
+
+            const now = performance.now() / 1000;
+            const currentTime = stopwatchStartTime + (now - localStartTick);
+
+            const progressPercent = (currentTime / (trackDurationMs / 1000)) * 100;
+            progressBar.style.width = `${Math.min(progressPercent, 100)}%`;
+
+            let activeIdx = -1;
+            for (let i = 0; i < parsedLyrics.length; i++) {
+                if (currentTime >= parsedLyrics[i].time) {
+                    activeIdx = i;
+                } else { break; }
+            }
+
+            if (activeIdx !== -1) {
+                const activeText = parsedLyrics[activeIdx].text;
+                if (currentLyricEl.innerText !== activeText) {
+                    currentLyricEl.innerText = activeText;
+                    if (activeIdx + 1 < parsedLyrics.length) {
+                        nextLyricEl.innerText = parsedLyrics[activeIdx + 1].text;
+                    } else {
+                        nextLyricEl.innerText = "";
+                    }
+                }
+            }
+            requestAnimationFrame(updateDisplay);
+        }
+
+        (async function init() {
+            checkSpotifyToken(); 
+            
+            const s = getSession();
+            if (s) {
+                document.getElementById("whoName").textContent = s.username;
+                document.getElementById("authScreen").classList.add("hidden");
+                document.getElementById("dashScreen").classList.remove("hidden");
+                document.getElementById("dashScreen").classList.remove("screen-enter");
+                document.getElementById("dashScreen").classList.add("screen-active");
+            } else {
+                setMode("login");
+            }
+            
+            requestAnimationFrame(updateDisplay);
+        })();
+    </script>
+</body>
+</html>
